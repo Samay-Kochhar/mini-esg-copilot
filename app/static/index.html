@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini ESG Copilot Pipeline</title>
+    <style>
+      :root {
+        --bg-1: #f4f9f7;
+        --bg-2: #eef4ff;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #5b6576;
+        --accent: #086972;
+        --accent-2: #144272;
+        --border: #d4dbe5;
+        --ok: #15803d;
+        --warn: #c27c00;
+        --fail: #b91c1c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 20% 0%, #d6efe7 0%, rgba(214, 239, 231, 0) 48%),
+          linear-gradient(165deg, var(--bg-1), var(--bg-2));
+      }
+
+      .wrap {
+        max-width: 1120px;
+        margin: 22px auto 40px;
+        padding: 0 14px;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 14px;
+      }
+
+      .title {
+        margin: 0 0 4px;
+        font-size: 2rem;
+        letter-spacing: 0.2px;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .workflow {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .step-chip {
+        border: 1px dashed #a6b2c6;
+        border-radius: 10px;
+        padding: 10px;
+        background: #fbfcff;
+      }
+
+      .step-chip b {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      .status-bar {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .pill {
+        display: inline-block;
+        border-radius: 999px;
+        border: 1px solid #bdc7d8;
+        padding: 4px 10px;
+        font-size: 0.9rem;
+        background: #f8fbff;
+      }
+
+      .pill.ok {
+        border-color: #9dd9b0;
+        color: var(--ok);
+        background: #eefcf2;
+      }
+
+      .pill.warn {
+        border-color: #f1d08b;
+        color: var(--warn);
+        background: #fffaea;
+      }
+
+      .pill.fail {
+        border-color: #f4b4b4;
+        color: var(--fail);
+        background: #fff1f1;
+      }
+
+      h2 {
+        margin: 0 0 8px;
+        font-size: 1.55rem;
+      }
+
+      h3 {
+        margin: 0 0 8px;
+        font-size: 1.15rem;
+      }
+
+      .muted {
+        color: var(--muted);
+        margin: 0 0 10px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      input,
+      select,
+      textarea,
+      button {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 9px 10px;
+        font-size: 0.95rem;
+      }
+
+      textarea {
+        min-height: 74px;
+        resize: vertical;
+      }
+
+      button {
+        border: none;
+        cursor: pointer;
+        color: #ffffff;
+        font-weight: 700;
+        letter-spacing: 0.1px;
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .btn-main {
+        background: linear-gradient(90deg, #0b7f88, #086972);
+      }
+
+      .btn-dark {
+        background: linear-gradient(90deg, #29405f, #1f3551);
+      }
+
+      .btn-wide {
+        background: linear-gradient(90deg, #16736c, #234f94);
+      }
+
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .row > * {
+        flex: 1;
+        min-width: 180px;
+      }
+
+      .result-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+
+      .panel {
+        border: 1px solid #ccd7e5;
+        border-radius: 10px;
+        padding: 10px;
+        background: #fbfdff;
+      }
+
+      .panel h4 {
+        margin: 0 0 6px;
+      }
+
+      .panel p {
+        margin: 0;
+        line-height: 1.43;
+      }
+
+      .kv {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .kv div {
+        border: 1px solid #dce3ef;
+        border-radius: 8px;
+        padding: 8px;
+        background: #fcfdff;
+      }
+
+      .kv small {
+        display: block;
+        color: var(--muted);
+      }
+
+      details {
+        margin-top: 10px;
+      }
+
+      pre {
+        background: #0c1533;
+        color: #dce7ff;
+        border-radius: 10px;
+        padding: 10px;
+        overflow: auto;
+      }
+
+      @media (max-width: 720px) {
+        .title {
+          font-size: 1.6rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="card">
+        <h1 class="title">Mini AI ESG Copilot Pipeline</h1>
+        <p class="subtitle">Simple flow: save report -> generate strategy -> review quality checks.</p>
+      </section>
+
+      <section class="card">
+        <div class="workflow">
+          <div class="step-chip">
+            <b>Step 1</b>
+            Save ESG report input
+          </div>
+          <div class="step-chip">
+            <b>Step 2</b>
+            Generate 3 strategy variants
+          </div>
+          <div class="step-chip">
+            <b>Step 3</b>
+            Review numbers and guardrails
+          </div>
+        </div>
+        <div class="status-bar">
+          <span class="pill" id="report_pill">Report ID: none</span>
+          <span class="pill" id="strategy_pill">Strategy: not started</span>
+          <span class="pill" id="message_pill">Ready</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Step 1: Report Input</h2>
+        <p class="muted">Required fields must be valid numbers and units.</p>
+        <div class="grid">
+          <div>
+            <label>Company Name *</label>
+            <input id="company_name" value="Demo Cement Co" />
+          </div>
+          <div>
+            <label>Reporting Year *</label>
+            <input id="reporting_year" type="number" value="2024" />
+          </div>
+          <div>
+            <label>Scope 1 Value *</label>
+            <input id="scope1_value" type="number" value="120000" />
+          </div>
+          <div>
+            <label>Scope 1 Unit *</label>
+            <select id="scope1_unit">
+              <option value="kg_co2e">kg_co2e</option>
+              <option value="t_co2e">t_co2e</option>
+            </select>
+          </div>
+          <div>
+            <label>Scope 2 Value *</label>
+            <input id="scope2_value" type="number" value="28000" />
+          </div>
+          <div>
+            <label>Scope 2 Unit *</label>
+            <select id="scope2_unit">
+              <option value="kg_co2e">kg_co2e</option>
+              <option value="t_co2e">t_co2e</option>
+            </select>
+          </div>
+          <div>
+            <label>Scope 3 Value (Optional)</label>
+            <input id="scope3_value" type="number" />
+          </div>
+          <div>
+            <label>Scope 3 Unit (Optional)</label>
+            <select id="scope3_unit">
+              <option value="">-- choose --</option>
+              <option value="kg_co2e">kg_co2e</option>
+              <option value="t_co2e">t_co2e</option>
+            </select>
+          </div>
+          <div>
+            <label>Energy Consumption (kWh, Optional)</label>
+            <input id="energy_consumption_kwh" type="number" value="500000" />
+          </div>
+          <div>
+            <label>Notes (Optional)</label>
+            <textarea id="notes">Focus on kiln efficiency and power contracts.</textarea>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+          <button id="save_btn" class="btn-main">Save Report</button>
+          <button id="latest_btn" class="btn-dark">Load Latest Report</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Step 2: Strategy Run</h2>
+        <p class="muted">Use one-click run for the easiest path.</p>
+        <div class="grid">
+          <div>
+            <label>Report ID</label>
+            <input id="report_id" type="number" placeholder="Auto-filled after save" />
+          </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+          <button id="run_btn" class="btn-wide">Run Full Flow (Save + Generate + Wait)</button>
+        </div>
+        <div class="row" style="margin-top: 8px">
+          <button id="generate_btn" class="btn-main">Generate Strategy</button>
+          <button id="strategy_btn" class="btn-dark">Refresh Strategy</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Step 3: Results</h2>
+        <div class="kv" id="numbers_kv">
+          <div>
+            <small>Reporting Year</small>
+            <b id="year_out">-</b>
+          </div>
+          <div>
+            <small>Scope 1 (tCO2e)</small>
+            <b id="scope1_out">-</b>
+          </div>
+          <div>
+            <small>Scope 2 (tCO2e)</small>
+            <b id="scope2_out">-</b>
+          </div>
+          <div>
+            <small>Guardrail Summary</small>
+            <b id="guardrail_summary">-</b>
+          </div>
+        </div>
+        <div class="result-grid" style="margin-top: 10px">
+          <div class="panel">
+            <h4>Short Variant</h4>
+            <p id="short_out">No strategy yet.</p>
+          </div>
+          <div class="panel">
+            <h4>Neutral Variant</h4>
+            <p id="neutral_out">No strategy yet.</p>
+          </div>
+          <div class="panel">
+            <h4>Detailed Variant</h4>
+            <p id="detailed_out">No strategy yet.</p>
+          </div>
+        </div>
+        <details>
+          <summary>Show Raw JSON</summary>
+          <pre id="output">{}</pre>
+        </details>
+      </section>
+    </div>
+
+    <script>
+      const out = document.getElementById("output");
+      const reportIdInput = document.getElementById("report_id");
+      const saveBtn = document.getElementById("save_btn");
+      const latestBtn = document.getElementById("latest_btn");
+      const runBtn = document.getElementById("run_btn");
+      const generateBtn = document.getElementById("generate_btn");
+      const strategyBtn = document.getElementById("strategy_btn");
+
+      const state = {
+        report: null,
+        strategy: null,
+        busy: false
+      };
+
+      function setPill(el, text, type = "") {
+        el.textContent = text;
+        el.className = "pill";
+        if (type) el.classList.add(type);
+      }
+
+      function setMessage(msg, type = "") {
+        setPill(document.getElementById("message_pill"), msg, type);
+      }
+
+      function updateActionState() {
+        const hasReportId = Number(reportIdInput.value) > 0;
+        generateBtn.disabled = !hasReportId || state.busy;
+        strategyBtn.disabled = !hasReportId || state.busy;
+        saveBtn.disabled = state.busy;
+        latestBtn.disabled = state.busy;
+        runBtn.disabled = state.busy;
+      }
+
+      function showRaw(data) {
+        out.textContent = JSON.stringify(data, null, 2);
+      }
+
+      function parseRequiredNumber(id) {
+        const raw = document.getElementById(id).value.trim();
+        if (!raw) throw new Error(`${id} is required.`);
+        const num = Number(raw);
+        if (!Number.isFinite(num)) throw new Error(`${id} must be a valid number.`);
+        return num;
+      }
+
+      function parseOptionalNumber(id) {
+        const raw = document.getElementById(id).value.trim();
+        if (!raw) return null;
+        const num = Number(raw);
+        if (!Number.isFinite(num)) throw new Error(`${id} must be a valid number.`);
+        return num;
+      }
+
+      function parseOptionalString(id) {
+        const raw = document.getElementById(id).value.trim();
+        return raw ? raw : null;
+      }
+
+      function buildReportPayload() {
+        const scope3Value = parseOptionalNumber("scope3_value");
+        const scope3Unit = document.getElementById("scope3_unit").value;
+        if ((scope3Value === null && scope3Unit) || (scope3Value !== null && !scope3Unit)) {
+          throw new Error("scope3_value and scope3_unit must be provided together.");
+        }
+
+        const payload = {
+          company_name: document.getElementById("company_name").value.trim(),
+          reporting_year: parseRequiredNumber("reporting_year"),
+          scope1_value: parseRequiredNumber("scope1_value"),
+          scope1_unit: document.getElementById("scope1_unit").value,
+          scope2_value: parseRequiredNumber("scope2_value"),
+          scope2_unit: document.getElementById("scope2_unit").value,
+          energy_consumption_kwh: parseOptionalNumber("energy_consumption_kwh"),
+          notes: parseOptionalString("notes")
+        };
+
+        if (!payload.company_name) throw new Error("company_name is required.");
+        if (scope3Value !== null && scope3Unit) {
+          payload.scope3_value = scope3Value;
+          payload.scope3_unit = scope3Unit;
+        }
+        return payload;
+      }
+
+      async function api(path, options = {}) {
+        const res = await fetch(path, {
+          headers: { "Content-Type": "application/json" },
+          ...options
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const err = new Error(data?.detail ? "API error" : "Request failed");
+          err.data = data;
+          throw err;
+        }
+        return data;
+      }
+
+      function fillInputFromReport(report) {
+        if (!report) return;
+        document.getElementById("company_name").value = report.company_name || "";
+        document.getElementById("reporting_year").value = report.reporting_year || "";
+        document.getElementById("scope1_value").value = report.scope1_value || "";
+        document.getElementById("scope1_unit").value = report.scope1_unit || "kg_co2e";
+        document.getElementById("scope2_value").value = report.scope2_value || "";
+        document.getElementById("scope2_unit").value = report.scope2_unit || "kg_co2e";
+        document.getElementById("scope3_value").value = report.scope3_value || "";
+        document.getElementById("scope3_unit").value = report.scope3_unit || "";
+        document.getElementById("energy_consumption_kwh").value = report.energy_consumption_kwh || "";
+        document.getElementById("notes").value = report.notes || "";
+      }
+
+      function renderStrategy(strategyResponse) {
+        const strategy = strategyResponse?.strategy || null;
+        const guardrails = strategyResponse?.guardrail_result || {};
+
+        document.getElementById("short_out").textContent = strategy?.short || "No strategy yet.";
+        document.getElementById("neutral_out").textContent = strategy?.neutral || "No strategy yet.";
+        document.getElementById("detailed_out").textContent = strategy?.detailed || "No strategy yet.";
+
+        if (strategy?.numbers_used) {
+          document.getElementById("year_out").textContent = strategy.numbers_used.reporting_year ?? "-";
+          document.getElementById("scope1_out").textContent = strategy.numbers_used.scope1_tco2e ?? "-";
+          document.getElementById("scope2_out").textContent = strategy.numbers_used.scope2_tco2e ?? "-";
+        }
+
+        const statuses = ["short", "neutral", "detailed"]
+          .map((k) => guardrails[k]?.status || "n/a")
+          .join(" / ");
+        document.getElementById("guardrail_summary").textContent = statuses;
+      }
+
+      async function saveReport() {
+        const payload = buildReportPayload();
+        const report = await api("/reports", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        state.report = report;
+        state.strategy = null;
+        reportIdInput.value = report.id;
+        setPill(document.getElementById("report_pill"), `Report ID: ${report.id}`, "ok");
+        setMessage("Report saved", "ok");
+        showRaw(report);
+        fillInputFromReport(report);
+        updateActionState();
+        return report;
+      }
+
+      async function loadLatest() {
+        const report = await api("/reports/latest");
+        state.report = report;
+        reportIdInput.value = report.id;
+        setPill(document.getElementById("report_pill"), `Report ID: ${report.id}`, "ok");
+        setMessage("Loaded latest report", "ok");
+        showRaw(report);
+        fillInputFromReport(report);
+        updateActionState();
+      }
+
+      async function fetchStrategy() {
+        const reportId = Number(reportIdInput.value);
+        if (!reportId) throw new Error("Enter a valid report_id.");
+        const data = await api(`/reports/${reportId}/strategy`);
+        state.strategy = data;
+        setPill(
+          document.getElementById("strategy_pill"),
+          `Strategy: ${data.status}`,
+          data.status === "done" ? "ok" : data.status === "failed" ? "fail" : "warn"
+        );
+        if (data.status === "done") setMessage("Strategy ready", "ok");
+        if (data.status === "failed") setMessage("Strategy failed", "fail");
+        showRaw(data);
+        renderStrategy(data);
+        return data;
+      }
+
+      async function pollStrategyUntilDone(reportId, retries = 20, waitMs = 600) {
+        for (let i = 0; i < retries; i += 1) {
+          const data = await api(`/reports/${reportId}/strategy`);
+          state.strategy = data;
+          setPill(
+            document.getElementById("strategy_pill"),
+            `Strategy: ${data.status}`,
+            data.status === "done" ? "ok" : data.status === "failed" ? "fail" : "warn"
+          );
+          showRaw(data);
+          renderStrategy(data);
+          if (data.status === "done") return data;
+          if (data.status === "failed") throw new Error(data.error_message || "Strategy generation failed.");
+          await new Promise((resolve) => setTimeout(resolve, waitMs));
+        }
+        throw new Error("Strategy is still pending. Click Refresh Strategy.");
+      }
+
+      async function generateStrategy(autoWait = true) {
+        const reportId = Number(reportIdInput.value);
+        if (!reportId) throw new Error("Enter a valid report_id.");
+        const data = await api(`/reports/${reportId}/generate-strategy`, { method: "POST" });
+        state.strategy = data;
+        setPill(
+          document.getElementById("strategy_pill"),
+          `Strategy: ${data.status}`,
+          data.status === "done" ? "ok" : data.status === "failed" ? "fail" : "warn"
+        );
+        showRaw(data);
+        renderStrategy(data);
+        if (!autoWait || data.status !== "pending") return data;
+        setMessage("Generating strategy...", "warn");
+        return pollStrategyUntilDone(reportId);
+      }
+
+      async function runAction(action) {
+        try {
+          state.busy = true;
+          updateActionState();
+          await action();
+        } catch (err) {
+          const data = err?.data || { error: err.message || "Unexpected error" };
+          showRaw(data);
+          setMessage(
+            data?.detail
+              ? Array.isArray(data.detail)
+                ? "Validation error. Check raw JSON details."
+                : String(data.detail)
+              : data.error || "Request failed",
+            "fail"
+          );
+        } finally {
+          state.busy = false;
+          updateActionState();
+        }
+      }
+
+      saveBtn.onclick = () => runAction(saveReport);
+      latestBtn.onclick = () => runAction(loadLatest);
+      strategyBtn.onclick = () => runAction(fetchStrategy);
+      generateBtn.onclick = () => runAction(() => generateStrategy(true));
+      runBtn.onclick = () =>
+        runAction(async () => {
+          const report = await saveReport();
+          reportIdInput.value = report.id;
+          await generateStrategy(true);
+        });
+
+      updateActionState();
+      showRaw({});
+    </script>
+  </body>
+</html>
+

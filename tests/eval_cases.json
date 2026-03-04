@@ -1,0 +1,38 @@
+[
+  {
+    "name": "kg_to_t_normalization_case",
+    "payload": {
+      "company_name": "Baseline Materials",
+      "reporting_year": 2024,
+      "scope1_value": 100000,
+      "scope1_unit": "kg_co2e",
+      "scope2_value": 25000,
+      "scope2_unit": "kg_co2e",
+      "notes": "Prioritize purchased electricity optimization."
+    }
+  },
+  {
+    "name": "direct_tco2e_case",
+    "payload": {
+      "company_name": "Direct Tonnes Corp",
+      "reporting_year": 2023,
+      "scope1_value": 145.2,
+      "scope1_unit": "t_co2e",
+      "scope2_value": 78.1,
+      "scope2_unit": "t_co2e",
+      "energy_consumption_kwh": 800000
+    }
+  },
+  {
+    "name": "mixed_units_case",
+    "payload": {
+      "company_name": "Mixed Units Ltd",
+      "reporting_year": 2022,
+      "scope1_value": 300000,
+      "scope1_unit": "kg_co2e",
+      "scope2_value": 220,
+      "scope2_unit": "t_co2e"
+    }
+  }
+]
+

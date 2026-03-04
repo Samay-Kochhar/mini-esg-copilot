@@ -67,3 +67,10 @@ cd /Users/samaykochhar/Desktop/COBACK_prep/mini-esg-copilot-pipeline
 ## 7) File-by-file explanation
 For simple explanation of each file, see:
 - `FILE_SUMMARY.md`
+
+<img width="2010" height="1564" alt="image" src="https://github.com/user-attachments/assets/7498221c-44b7-46ee-95e4-639c94f5c866" />
+<img width="1928" height="1554" alt="image" src="https://github.com/user-attachments/assets/dc0161b3-40ee-4ced-8cc1-c8f0c273debc" />
+<img width="1944" height="1062" alt="image" src="https://github.com/user-attachments/assets/684147b1-9500-4313-8fc1-206b8e7a402a" />
+
+
+
